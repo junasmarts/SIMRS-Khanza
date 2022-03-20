@@ -101,8 +101,8 @@ public final class DlgKasirRalan extends javax.swing.JDialog {
     private sekuel Sequel=new sekuel();
     private validasi Valid=new validasi();
     private Connection koneksi=koneksiDB.condb();
-    private PreparedStatement psotomatis,psotomatis2,pskasir,pscaripiutang,psrekening;
-    private ResultSet rskasir,rsrekening;
+    private PreparedStatement ps,psotomatis,psotomatis2,pskasir,pscaripiutang,psrekening;
+    private ResultSet rs,rskasir,rsrekening;
     private String aktifkanparsial="no",kamar_inap_kasir_ralan=Sequel.cariIsi("select kamar_inap_kasir_ralan from set_jam_minimal"),caripenjab="",filter="no",bangsal=Sequel.cariIsi("select kd_bangsal from set_lokasi limit 1"),nonota="",
             sqlpsotomatis2="insert into rawat_jl_dr values (?,?,?,?,?,?,?,?,?,?,?,'Belum')",
             sqlpsotomatis2petugas="insert into rawat_jl_pr values (?,?,?,?,?,?,?,?,?,?,?,'Belum')",
@@ -7903,15 +7903,55 @@ private void MnDataPemberianObatActionPerformed(java.awt.event.ActionEvent evt) 
                 if(Sequel.cariInteger("select count(no_rawat) from kamar_inap where no_rawat=?",TNoRw.getText())>0){
                     JOptionPane.showMessageDialog(null,"Maaf, Pasien sudah masuk Kamar Inap. Gunakan billing Ranap..!!!");
                 }else {
-                    this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-                    DlgPermintaanRadiologi dlgro=new DlgPermintaanRadiologi(null,false);
-                    dlgro.setSize(internalFrame1.getWidth()-20,internalFrame1.getHeight()-20);
-                    dlgro.setLocationRelativeTo(internalFrame1);
-                    dlgro.emptTeks();
-                    dlgro.isCek();
-                    dlgro.setNoRm(TNoRw.getText(),"Ralan");
-                    dlgro.setVisible(true);
-                    this.setCursor(Cursor.getDefaultCursor());
+                                       
+                    try {
+                        ps=koneksi.prepareStatement("SELECT * FROM permintaan_radiologi WHERE no_rawat=? AND tgl_permintaan=?"); 
+                        
+                        try {
+                            java.util.Date date=new java.util.Date();
+                            java.sql.Date sqlDate=new java.sql.Date(date.getTime());
+                            
+                            ps.setString(1, TNoRw.getText());
+                            ps.setDate(2, sqlDate);
+                            rs = ps.executeQuery();
+                                                        
+                            if(rs.next()) {
+                                int opsi = JOptionPane.showConfirmDialog(null, "Permintaan "+TNoRw.getText()+" sudah dientry pukul "+rs.getString("jam_permintaan")+".\nTetap lanjutkan ?", "Peringatan Double Entry", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                                if (opsi == JOptionPane.YES_OPTION) {
+                                    this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+                                    DlgPermintaanRadiologi dlgro = new DlgPermintaanRadiologi(null, false);
+                                    dlgro.setSize(internalFrame1.getWidth() - 20, internalFrame1.getHeight() - 20);
+                                    dlgro.setLocationRelativeTo(internalFrame1);
+                                    dlgro.emptTeks();
+                                    dlgro.isCek();
+                                    dlgro.setNoRm(TNoRw.getText(), "Ralan");
+                                    dlgro.setVisible(true);
+                                    this.setCursor(Cursor.getDefaultCursor());
+                                } else {
+                                    
+                                }
+                            } else {
+                                this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+                                DlgPermintaanRadiologi dlgro = new DlgPermintaanRadiologi(null, false);
+                                dlgro.setSize(internalFrame1.getWidth() - 20, internalFrame1.getHeight() - 20);
+                                dlgro.setLocationRelativeTo(internalFrame1);
+                                dlgro.emptTeks();
+                                dlgro.isCek();
+                                dlgro.setNoRm(TNoRw.getText(), "Ralan");
+                                dlgro.setVisible(true);
+                                this.setCursor(Cursor.getDefaultCursor());
+                            }
+                            
+                        } catch (Exception er) {
+                            System.out.println("Notifikasi: " + er);
+                        } finally {
+                            if (ps != null) {
+                                ps.close();
+                            }
+                        }
+                    } catch (Exception ed) {
+                        System.out.println(ed);
+                    }
                 }
             }
         }
@@ -7995,16 +8035,16 @@ private void MnDataPemberianObatActionPerformed(java.awt.event.ActionEvent evt) 
                     JOptionPane.showMessageDialog(null,"Maaf, Pasien sudah masuk Kamar Inap. Gunakan billing Ranap..!!!");
                 }else {
                     this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-                    DlgPermintaanRadiologi dlgro=new DlgPermintaanRadiologi(null,false);
-                    dlgro.setSize(internalFrame1.getWidth()-20,internalFrame1.getHeight()-20);
+                    DlgPermintaanRadiologi dlgro = new DlgPermintaanRadiologi(null, false);
+                    dlgro.setSize(internalFrame1.getWidth() - 20, internalFrame1.getHeight() - 20);
                     dlgro.setLocationRelativeTo(internalFrame1);
                     dlgro.emptTeks();
                     dlgro.isCek();
-                    dlgro.setNoRm(tbKasirRalan2.getValueAt(tbKasirRalan2.getSelectedRow(),10).toString(),"Ralan",
-                            tbKasirRalan2.getValueAt(tbKasirRalan2.getSelectedRow(),0).toString(),
-                            tbKasirRalan2.getValueAt(tbKasirRalan2.getSelectedRow(),1).toString());
+                    dlgro.setNoRm(tbKasirRalan2.getValueAt(tbKasirRalan2.getSelectedRow(), 10).toString(), "Ralan",
+                            tbKasirRalan2.getValueAt(tbKasirRalan2.getSelectedRow(), 0).toString(),
+                            tbKasirRalan2.getValueAt(tbKasirRalan2.getSelectedRow(), 1).toString());
                     dlgro.setVisible(true);
-                    this.setCursor(Cursor.getDefaultCursor());
+                    this.setCursor(Cursor.getDefaultCursor());                  
                 }
             }else{
                 JOptionPane.showMessageDialog(null,"Maaf, Pilih pasien terlebih dahulu..!!!");
